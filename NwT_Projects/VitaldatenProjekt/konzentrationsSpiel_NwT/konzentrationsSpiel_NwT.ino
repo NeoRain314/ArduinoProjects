@@ -23,7 +23,6 @@ byte rowPins[ROWS] = { 5, 4, 3, 2 };//Definition der Pins für die 4 Zeilen
 char Taste; //pressedKey entspricht in Zukunft den gedrückten Tasten
 Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); //Das Keypad kann absofort mit myKeypad angesprochen werden
 
-
 int stat = 0;
 int rando = 0;
 int tasteSave = 0;
