@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 #include <LiquidCrystal_I2C.h>
 
 // >>> defines <<< //
@@ -70,7 +72,8 @@ void setup() {
   randomSeed(analogRead(A1));
   Serial.begin(9600);
   
-  Lcd.init();
+  //Lcd.init();
+  Lcd.begin(16, 2);
   Lcd.clear();
   Lcd.backlight();
   Lcd.setCursor(0, 0);
