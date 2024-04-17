@@ -1,6 +1,7 @@
 #include <Key.h>
 #include <Keypad.h>
 
+//marker !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
 
 // ------ Keypad ----------------------------------------
 //defines Size of Keypad
@@ -24,9 +25,12 @@ Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 //------ konzentrations spiel variablen ----------------------------------------
 int order[5] = {0, 0, 0, 0, 0};
 int order_index = 0; //index in order arr
-int order_length;
-int game_round = 0;
-int rando = 0; //
+int order_length; //length of order array
+int game_round = 0; //current game round
+int led_stat = 0; //stat if leds were shown or not
+bool gameover = false;
+
+#define CTRL_LED 13
 
 
 // <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
@@ -58,27 +62,55 @@ void loop() {
   if(order_index == game_round){
     if(game_round == order_length){
       Serial.println("Finished");
-    }else{
+    }else if(gameover == true){
+      Serial.println("Game Over");
+    }else {
       order_index = 0;
+      led_stat = 0;
       game_round++;      
     }
     
     
   } else {
     Taste = myKeypad.getKey();
+    controllLed();
     Serial.println(order[order_index]);
     if (Taste == ('0' + order[order_index])) {
       Serial.println("right button");
       order_index++;
+    }/*else if(Taste){ //wrong Key pressed
+    //geht noch nicht...?! !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+      gameover = true;
+    }*/
+
+    if(led_stat == 0){
+      showLedOrder();
+      led_stat = 1;
     }
   }
   
 }
 
+// <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
 
+void showLedOrder(){
+  for(int i = 0; i<game_round; i++){
+    digitalWrite(order[order_index], HIGH);
+    delay(500);
+    digitalWrite(order[order_index], LOW);
+    delay(500);
+  }
+}
 
-
-
+void controllLed(){ 
+  if(Taste){
+    Serial.println("led");
+    digitalWrite(CTRL_LED, HIGH);
+    //evt. delay wenn nicht stört !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+  }else{
+    digitalWrite(CTRL_LED, LOW);
+  }
+} 
 
 
 
