@@ -3,7 +3,7 @@
 
 //Hier wird die größe des Keypads definiert
 const byte COLS = 3; //3 Spalten
-const byte ROWS = 4; //4 Zeilen
+const byte ROWS = 4; //4 Zeilen; schwarz
 
 //Die Ziffern/Zeichen:
 char hexaKeys[ROWS][COLS] = {
@@ -15,8 +15,6 @@ char hexaKeys[ROWS][COLS] = {
 
 int order[5] = {0, 0, 0, 0, 0};
 
-//char numToChar[10] = {""}
-
 byte colPins[COLS] = { 8, 7, 6 }; //Definition der Pins für die 3 Spalten
 byte rowPins[ROWS] = { 5, 4, 3, 2 };//Definition der Pins für die 4 Zeilen
 
@@ -26,7 +24,7 @@ Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); //
 int stat = 0; // 0 -> neue zufallszahl; 1 -> warten bis rand taste gedrückt;2 -> warten bis nächste taste in array gedrückt
 int rando = 0;
 int tasteSave = 0;
-int i = 0; //index in order arr
+int index = 0; //index in order arr
 
 // -----------------------------------------------  //
 
@@ -45,31 +43,35 @@ void loop() {
   //Serial.println(Taste);
 
   if(stat == 0){
+    //save new number in array
     rando = random(1, 10);
-    Serial.print("Zahl: ");
-    Serial.println(rando);
-    stat = 1;
+    saveInArr(rando, order);
+    index = 0;
+    stat = 2;
   } else if(stat == 1){
-    Taste = myKeypad.getKey(); //pressedKey entspricht der gedrückten Taste
+    Serial.print("Zahl: ");
+    Serial.println(order[index]);
+    Taste = myKeypad.getKey();
     if (Taste) Serial.println(Taste);
-    if (Taste == '0' + rando) {
-      stat = 0;
+    if (Taste == ('0' + order[index])) {
+      Serial.println("right button");
+      index++;
+      //stat = 2;
     }
   } else if(stat == 2){
-    Taste = myKeypad.getKey(); //pressedKey entspricht der gedrückten Taste
-    if (Taste) Serial.println(Taste);
-    if (Taste == '0' + rando) {
-      if(order[i+1]){
-        // nochmal an nächster stelle
-      } else{
-        stat = 0; //neue zufallszahl
-      }
-    }
+    //go through array and ask for keypad
+    //if (Taste) Serial.println(Taste);
+    //Serial.println(order[index]);
+    if(order[index]){
+      stat = 1;
+    } else{
+      stat = 0; //neue zufallszahl
+    } 
   }
   
 }
 
-void saveInArr(int x, int arr){
+void saveInArr(int x, int arr[]){
   for(int i=0; i< (sizeof(arr) / sizeof(arr[0])); i++){
     if(arr[i]){ // kann man das so machen? Keine ahnung?
       //... idk what, nothing...?!
@@ -77,6 +79,7 @@ void saveInArr(int x, int arr){
       arr[i] = x;
       return;
     }
+  }
 }
 
 
