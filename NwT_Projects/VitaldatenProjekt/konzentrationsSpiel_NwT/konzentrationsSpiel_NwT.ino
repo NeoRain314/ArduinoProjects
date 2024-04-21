@@ -51,6 +51,20 @@ void setup() {
     order[i] = random(1, 10);
   }
 
+  pinMode(CTRL_LED, OUTPUT);
+
+  for(int i = 22; i<38; i++){
+    pinMode(i, OUTPUT); //16 leds (Display)
+  }
+
+  //just for testing the leds and make sure everything is working
+  for(int i = 22; i<38; i++){
+    digitalWrite(i, HIGH);
+    delay(200);
+    digitalWrite(i, LOW);
+    delay(200);
+  }
+  
   /*for(int i=0; i<order_length; i++) {
     Serial.println(order[i]);
   }*/
@@ -66,8 +80,9 @@ void loop() {
       Serial.println("Game Over");
     }else {
       order_index = 0;
+      game_round++;  
       led_stat = 0;
-      game_round++;      
+          
     }
     
     
@@ -87,26 +102,28 @@ void loop() {
       showLedOrder();
       led_stat = 1;
     }
-  }
+  };
+  
   
 }
 
 // <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
 
 void showLedOrder(){
+  Serial.println("led order");
+  delay(500);
   for(int i = 0; i<game_round; i++){
-    digitalWrite(order[order_index], HIGH);
+    digitalWrite(order[i] + 21, HIGH);
     delay(500);
-    digitalWrite(order[order_index], LOW);
+    digitalWrite(order[i] + 21, LOW);
     delay(500);
   }
 }
 
 void controllLed(){ 
   if(Taste){
-    Serial.println("led");
+    //Serial.println("led");
     digitalWrite(CTRL_LED, HIGH);
-    //evt. delay wenn nicht stört !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
   }else{
     digitalWrite(CTRL_LED, LOW);
   }
