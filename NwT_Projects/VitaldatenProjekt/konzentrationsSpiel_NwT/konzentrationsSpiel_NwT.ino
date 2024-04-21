@@ -146,6 +146,12 @@ void playSound(int sound[]){
   }
 }
 
+void pressedLEDglow(int led){
+  digitalWrite(led + 21, HIGH);
+  delay(300);
+  digitalWrite(led + 21, LOW);
+}
+
 
 
 
