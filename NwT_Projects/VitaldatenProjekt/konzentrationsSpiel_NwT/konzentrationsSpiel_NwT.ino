@@ -21,6 +21,12 @@ byte rowPins[ROWS] = { 5, 4, 3, 2 };//Definition der Pins für die 4 Zeilen
 char Taste; //pressed Key
 Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
+// ------ Sounds ----------------------------------------
+
+int sound_gamePress[1] = {349};
+int sound_gameRoundFinish[2] = {440, 587};
+
+
 
 //------ konzentrations spiel variablen ----------------------------------------
 int order[5] = {0, 0, 0, 0, 0};
@@ -31,6 +37,7 @@ int led_stat = 0; //stat if leds were shown or not
 bool gameover = false;
 
 #define CTRL_LED 13
+#define BUZZ_PIN 12
 
 
 // <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
@@ -82,7 +89,7 @@ void loop() {
       order_index = 0;
       game_round++;  
       led_stat = 0;
-          
+      playSound(sound_gameRoundFinish);   
     }
     
     
@@ -124,10 +131,20 @@ void controllLed(){
   if(Taste){
     //Serial.println("led");
     digitalWrite(CTRL_LED, HIGH);
+    playSound(sound_gamePress);
   }else{
     digitalWrite(CTRL_LED, LOW);
   }
 } 
+
+void playSound(int sound[]){
+  int sound_length = sizeof(sound) / sizeof(sound[0]);
+  for(int i = 0; i<sound_length; i++){
+    tone(BUZZ_PIN, sound[i]);
+    delay(200);
+    noTone(BUZZ_PIN);
+  }
+}
 
 
 
