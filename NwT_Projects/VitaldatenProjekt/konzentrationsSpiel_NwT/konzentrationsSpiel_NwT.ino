@@ -23,8 +23,9 @@ Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 // ------ Sounds ----------------------------------------
 
-int sound_gamePress[1] = {349};
-int sound_gameRoundFinish[2] = {440, 587};
+int sound_gameRight[1] = {440};
+int sound_gameover[4] = {210, 190, 210, 130};
+int sound_gameRoundFinish[1] = { 587};
 
 
 
@@ -38,6 +39,8 @@ bool gameover = false;
 
 #define CTRL_LED 13
 #define BUZZ_PIN 12
+
+#define arr_length(a) (sizeof(a) / sizeof(a[0]))
 
 
 // <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
@@ -65,12 +68,12 @@ void setup() {
   }
 
   //just for testing the leds and make sure everything is working
-  for(int i = 22; i<38; i++){
+  /*for(int i = 22; i<38; i++){
     digitalWrite(i, HIGH);
     delay(200);
     digitalWrite(i, LOW);
     delay(200);
-  }
+  }*/
   
   /*for(int i=0; i<order_length; i++) {
     Serial.println(order[i]);
@@ -80,16 +83,18 @@ void setup() {
 // <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><->  //
 
 void loop() {
-  if(order_index == game_round){
+  if(gameover == true){ //gameover
+      Serial.println("Game Over");
+      playSound(sound_gameover, arr_length(sound_gameover));
+      gameOver();
+  }else if(order_index == game_round){
     if(game_round == order_length){
       Serial.println("Finished");
-    }else if(gameover == true){
-      Serial.println("Game Over");
     }else {
       order_index = 0;
       game_round++;  
       led_stat = 0;
-      playSound(sound_gameRoundFinish);   
+      playSound(sound_gameRoundFinish, arr_length(sound_gameRoundFinish));   
     }
     
     
@@ -100,10 +105,10 @@ void loop() {
     if (Taste == ('0' + order[order_index])) {
       Serial.println("right button");
       order_index++;
-    }/*else if(Taste){ //wrong Key pressed
-    //geht noch nicht...?! !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+      playSound(sound_gameRight, arr_length(sound_gameRight));
+    }else if(Taste){ //wrong Key pressed
       gameover = true;
-    }*/
+    }
 
     if(led_stat == 0){
       showLedOrder();
@@ -131,14 +136,12 @@ void controllLed(){
   if(Taste){
     //Serial.println("led");
     digitalWrite(CTRL_LED, HIGH);
-    playSound(sound_gamePress);
   }else{
     digitalWrite(CTRL_LED, LOW);
   }
 } 
 
-void playSound(int sound[]){
-  int sound_length = sizeof(sound) / sizeof(sound[0]);
+void playSound(int sound[], int sound_length){
   for(int i = 0; i<sound_length; i++){
     tone(BUZZ_PIN, sound[i]);
     delay(200);
@@ -152,6 +155,13 @@ void pressedLEDglow(int led){
   digitalWrite(led + 21, LOW);
 }
 
+void gameOver(){
+  for(int i = 22; i<38; i++){
+    digitalWrite(i, HIGH);
+    //write on LCD Display
+  }
+  gameover = false;
+}
 
 
 
