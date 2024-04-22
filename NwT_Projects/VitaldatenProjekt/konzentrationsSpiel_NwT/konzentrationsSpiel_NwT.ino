@@ -1,3 +1,5 @@
+#include <LiquidCrystal_I2C.h>
+
 #include <Key.h>
 #include <Keypad.h>
 
@@ -27,10 +29,12 @@ int sound_gameRight[1] = {440};
 int sound_gameover[4] = {210, 190, 210, 130};
 int sound_gameRoundFinish[1] = { 587};
 
+// ------ LCD Display ----------------------------------------
 
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //------ konzentrations spiel variablen ----------------------------------------
-int order[5] = {0, 0, 0, 0, 0};
+int order[5] = {0, 0, 0, 0, 0 }; //later with for 0 in array
 int order_index = 0; //index in order arr
 int order_length; //length of order array
 int game_round = 0; //current game round
@@ -49,6 +53,9 @@ bool gameover = false;
 void setup() {
   //initializing --------------------------------------------
   Serial.begin(9600);
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
 
   int seed = analogRead(A0);
   randomSeed(seed);
@@ -87,13 +94,22 @@ void loop() {
       Serial.println("Game Over");
       playSound(sound_gameover, arr_length(sound_gameover));
       gameOver();
-  }else if(order_index == game_round){
+  }else if(order_index == game_round){ //not planned but finished all rounds
     if(game_round == order_length){
       Serial.println("Finished");
+      //buggy cuz it is called each frame !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+      lcd.clear();
+      printCharLcd("ouh you finished", 0, 0);
+      printCharLcd("all rounds! :D", 1, 0);
     }else {
       order_index = 0;
       game_round++;  
       led_stat = 0;
+      lcd.clear();
+      printCharLcd("--- Memorize ---", 0, 0);
+      printCharLcd("Runde:", 1, 0);
+      printNumLcd(game_round, 1, 7);
+
       playSound(sound_gameRoundFinish, arr_length(sound_gameRoundFinish));   
     }
     
@@ -156,11 +172,27 @@ void pressedLEDglow(int led){
 }
 
 void gameOver(){
+  lcd.clear();
+  printCharLcd("- Game  Over -", 0, 1);
+  printCharLcd(":(", 1, 7);
+
   for(int i = 22; i<38; i++){
     digitalWrite(i, HIGH);
     //write on LCD Display
   }
   gameover = false;
+}
+
+void printCharLcd(char text[], int cursorX, int cursorY){
+  //Lcd.clear();
+  lcd.setCursor(cursorY, cursorX);
+  lcd.print(text);
+}
+
+void printNumLcd(int num, int cursorX, int cursorY){
+  //Lcd.clear();
+  lcd.setCursor(cursorY, cursorX);
+  lcd.print(num);
 }
 
 
