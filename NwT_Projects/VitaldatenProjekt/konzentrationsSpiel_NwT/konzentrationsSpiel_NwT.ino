@@ -34,7 +34,7 @@ int sound_gameRoundFinish[1] = { 587};
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //------ konzentrations spiel variablen ----------------------------------------
-int order[5] = {0, 0, 0, 0, 0 }; //later with for 0 in array
+int order[30] = {}; //later with for 0 in array
 int order_index = 0; //index in order arr
 int order_length; //length of order array
 int game_round = 0; //current game round
@@ -75,12 +75,12 @@ void setup() {
   }
 
   //just for testing the leds and make sure everything is working
-  /*for(int i = 22; i<38; i++){
+  for(int i = 22; i<38; i++){
     digitalWrite(i, HIGH);
     delay(200);
     digitalWrite(i, LOW);
     delay(200);
-  }*/
+  }
   
   /*for(int i=0; i<order_length; i++) {
     Serial.println(order[i]);
@@ -174,7 +174,10 @@ void pressedLEDglow(int led){
 void gameOver(){
   lcd.clear();
   printCharLcd("- Game  Over -", 0, 1);
-  printCharLcd(":(", 1, 7);
+  printCharLcd("Runde:", 1, 0);
+  
+  printNumLcd(game_round, 1, 7);
+  printCharLcd(":(", 1, 14);
 
   for(int i = 22; i<38; i++){
     digitalWrite(i, HIGH);
@@ -251,6 +254,7 @@ if (Taste) { //Wenn eine Taste gedrückt wurde
       Serial.println(); //Teile uns am Serial Monitor die gedrückte Taste mit
     }
 */
+
 
 
 
