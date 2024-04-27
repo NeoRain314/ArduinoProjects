@@ -2,7 +2,7 @@
 #define rise_threshold 4
 
 // Pulse Monitor  Test Script
-int sensorPin = A0;
+int sensorPin = A3;
 
 void setup() {
     Serial.begin(9600);
@@ -26,6 +26,7 @@ void  loop ()
 
     while(1)
     {
+      nochmal:
       // calculate an average of the  sensor
       // during a 20 ms period (this will eliminate
       // the 50  Hz noise caused by electric light
@@ -34,11 +35,19 @@ void  loop ()
       reader = 0.;
       do
       {
-        reader += analogRead (sensorPin);
+        delay(10);
+        float val = analogRead (sensorPin);
+        
+        if (val < 400 || val > 600){
+          Serial.print("Value:");
+          Serial.println(val);
+          goto nochmal;
+        } 
+        reader += val;
         n++;
         now = millis();
       }
-      while (now < start +  20);  
+      while (now < start +  100);  
       reader /= n;  // we got an average
       
       // Add the  newest measurement to an array
