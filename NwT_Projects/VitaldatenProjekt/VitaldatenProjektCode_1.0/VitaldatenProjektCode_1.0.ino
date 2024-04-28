@@ -3,16 +3,22 @@
 #include <Key.h>
 #include <Keypad.h>
 
-// ------ main -----------------------------------------------
-int mode = 0; //0 -> Konzentrationsspiel; 1 -> Puls 
+// ------ main ----------------------------------------------------
+#define TASTER_PIN 1
+int mode = 0; //0 -> Konzentrationsspiel; 1 -> Puls & Temp
+volatile int taster_stat = 0;
 
-// ------ LCD Display ----------------------------------------
+// ------ LCD Display ----------------------------------------------
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// ------ temperatursensor -----------------------------------------------
+// ------ temperatursensor -----------------------------------------
 #define TEMP_SENSOR_PIN A0
 int temp_value = 0;
 int temperatur = 0;
+
+// ------ pulssensor -----------------------------------------------
+#define PULS_SENSOR_PIN A1
+int puls_value = 0;
 
 // <-> Setup <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Setup <->  //
 
@@ -22,19 +28,36 @@ void setup() {
   lcd.init();
   lcd.clear();
   lcd.backlight();
+  attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
 }
 
 
 // <-> Loop <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Loop <->  //
 
 void loop() {
-
+  if(taster_stat == 1){
+    changeMode();
+    taster_stat = 0;
+  }
 }
 
 
 // <-> functions <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> functions <-> //
 
 // ~~~ main ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ main ~~~~~~~~~~~~
+
+void tasterInterrupt(){
+  taster_stat = 1;
+}
+
+void changeMode(){
+  Serial.println("pressed");
+  if(mode < 1){
+    mode++;
+  }else {
+    mode = 0;
+  }
+}
 
 void konzentrationsspiel(){
   Serial.println("konzentrationsspiel");
