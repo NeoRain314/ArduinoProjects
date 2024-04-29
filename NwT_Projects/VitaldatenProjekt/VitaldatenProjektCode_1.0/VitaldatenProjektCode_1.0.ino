@@ -1,3 +1,19 @@
+// <-> Introduction <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Introduction <->  //
+/*
+  > "<-><->" --> main parts
+  > "------" --> initializing sub categories
+  > "~~~~~~" --> function sub categories
+
+
+Todo:
+ > ...
+
+Bugs:
+ > ...
+
+*/
+
+// <-> Initializing <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Initializing <->  //
 #include <LiquidCrystal_I2C.h>
 
 #include <Key.h>
@@ -25,9 +41,9 @@ int puls_value = 0;
 void setup() {
   //initializing --------------------------------------------
   Serial.begin(9600);
-  //lcd.init();
-  //lcd.clear();
-  //lcd.backlight();
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
   attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
 
   //main ----------------------------------------------------
@@ -60,15 +76,31 @@ void changeMode(){
   }else {
     mode = 0;
   }
-  Serial.println(mode);
+  //Serial.println(mode);
+  useMode();
+}
+
+void useMode(){
+  if(mode == 0){ //temp- & pulssensor
+    lcd.clear();
+    printCharLcd("Vitaldaten", 0, 0);
+    printCharLcd("Messung", 1, 0);
+    sensor();
+  }else if(mode == 1){ //konzentrationsspiel
+    lcd.clear();
+    printCharLcd("Konzentration", 0, 0);
+    printCharLcd("Spiel", 1, 0);
+
+    konzentrationsspiel();
+  }
 }
 
 void konzentrationsspiel(){
-  Serial.println("konzentrationsspiel");
+  Serial.println("Konzentrationsspiel");
 }
 
 void sensor(){
-  Serial.println("Puls- und Temperatursensor");
+  Serial.println("Vitaldatenmessung");
 }
 
 // ~~~ all ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ all ~~~~~~~~~~~~~~
