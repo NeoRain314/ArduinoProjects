@@ -4,7 +4,7 @@
 #include <Keypad.h>
 
 // ------ main ----------------------------------------------------
-#define TASTER_PIN 1
+#define TASTER_PIN 18
 int mode = 0; //0 -> Konzentrationsspiel; 1 -> Puls & Temp
 volatile int taster_stat = 0;
 
@@ -25,10 +25,13 @@ int puls_value = 0;
 void setup() {
   //initializing --------------------------------------------
   Serial.begin(9600);
-  lcd.init();
-  lcd.clear();
-  lcd.backlight();
+  //lcd.init();
+  //lcd.clear();
+  //lcd.backlight();
   attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
+
+  //main ----------------------------------------------------
+  pinMode(TASTER_PIN, INPUT_PULLUP);  
 }
 
 
@@ -36,13 +39,14 @@ void setup() {
 
 void loop() {
   if(taster_stat == 1){
-    changeMode();
     taster_stat = 0;
+    changeMode();
   }
 }
 
 
 // <-> functions <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> functions <-> //
+
 
 // ~~~ main ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ main ~~~~~~~~~~~~
 
@@ -51,12 +55,12 @@ void tasterInterrupt(){
 }
 
 void changeMode(){
-  Serial.println("pressed");
   if(mode < 1){
     mode++;
   }else {
     mode = 0;
   }
+  Serial.println(mode);
 }
 
 void konzentrationsspiel(){
@@ -94,3 +98,4 @@ void temperaturMessung(){
   temperatur = map(temp_value,51,41,238,206);
   Serial.println(temperatur);
 }
+
