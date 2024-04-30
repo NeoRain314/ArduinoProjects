@@ -6,11 +6,10 @@
 
 
 Todo:
- > ...
+ > break(); --> um aus schleife auszubrechen (evt. bei konzentrationsspiel nötig)
 
 Bugs:
- > mode everytime 1 at beginning (should be 0 till button press)
- > overwrites "Vitaldatenmessung" almost everytime with "Konzentrationsspiel" (--> mode!!)
+ > 
 
 */
 
@@ -88,14 +87,18 @@ void setup() {
   lcd.init();
   lcd.clear();
   lcd.backlight();
-  attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
+ 
 
   //main ----------------------------------------------------
-  pinMode(TASTER_PIN, INPUT_PULLUP);  
+  pinMode(TASTER_PIN, INPUT_PULLUP);
+  Serial.print("taster_stat: ");
+  Serial.println(taster_stat);
+  attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
 
 
   // start screen
   startScreen();
+  taster_stat = 0; // Interrupt wird aus irgeneinem Grund davor schon aufgerufen, deshalb nochmal auf 0
 }
 
 
@@ -109,10 +112,10 @@ void loop() {
   }
 
   if(mode == 1){ //temp- & pulssensor
-    //sensors();
+    sensors();
   }else if(mode == 2){ //konzentrationsspiel
     if(gamestart == true){
-      //konzentrationsspiel();
+      konzentrationsspiel();
     }
   }
 }
@@ -122,18 +125,20 @@ void loop() {
 
 
 // ~~~ main ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ main ~~~~~~~~~~~~
+volatile unsigned long alteZeit=0, entprellZeit=500;
 
 void tasterInterrupt(){
-  taster_stat = 1;
+  if((millis() - alteZeit) > entprellZeit) { 
+    taster_stat = 1;
+    //Serial.println("Taser Interrupt");
+    alteZeit = millis(); //letzte Schaltzeit merken      
+  }
 }
 
 void changeMode(){
-  if(mode < 2){
-    mode++;
-  }else {
-  mode = 1;
-  }
-  Serial.println(mode);
+  mode = mode + 1;
+  if(mode > 2) mode = 1;
+  //Serial.println(mode);
   startMode();
 }
 
@@ -143,8 +148,7 @@ void startMode(){
     lcd.clear();
     printCharLcd("Vitaldaten", 0, 0);
     printCharLcd("Messung", 1, 0);
-
-    delay(2000);
+    delay(1000);
   }else if(mode == 2){ //konzentrationsspiel
     Serial.println("Konzentrationsspiel");
     lcd.clear();
