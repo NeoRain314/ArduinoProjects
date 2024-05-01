@@ -75,10 +75,6 @@ int sound_gameover[4] = {210, 190, 210, 130};
 int sound_gameRoundFinish[1] = { 587};
 
 
-// ------ konzentrationsspiel -----------------------------------------------
-bool gamestart = false; //
-
-
 // <-> Setup <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Setup <->  //
 
 void setup() {
@@ -95,6 +91,32 @@ void setup() {
   Serial.println(taster_stat);
   attachInterrupt(digitalPinToInterrupt(TASTER_PIN), tasterInterrupt, FALLING);
 
+  //loading screen --------
+  printCharLcd("loading...", 0, 0);
+
+  //konzentrationsspiel -------------------------------------
+  int seed = analogRead(A0);
+  randomSeed(seed);
+  Serial.print("Seed: ");
+  Serial.println(seed);
+
+  order_length = sizeof(order) / sizeof(order[0]);
+  //randomizeOrderArray(); //wird am anfang von konzentrationsspiel gemacht
+  
+  pinMode(CTRL_LED, OUTPUT);
+
+  for(int i = 22; i<38; i++){
+    pinMode(i, OUTPUT); //16 leds (Display)
+  }
+
+  //just for testing the leds and make sure everything is working
+  /*for(int i = 22; i<38; i++){
+    digitalWrite(i, HIGH);
+    delay(200);
+    digitalWrite(i, LOW);
+    delay(200);
+  }  */
+
 
   // start screen
   startScreen();
@@ -106,17 +128,12 @@ void setup() {
 
 void loop() {
   
-  if(taster_stat == 1){
-    taster_stat = 0;
-    changeMode();
-  }
+  checkTasterChange();
 
   if(mode == 1){ //temp- & pulssensor
     sensors();
   }else if(mode == 2){ //konzentrationsspiel
-    if(gamestart == true){
-      konzentrationsspiel();
-    }
+    konzentrationsspiel();
   }
 }
 
@@ -135,10 +152,17 @@ void tasterInterrupt(){
   }
 }
 
+void checkTasterChange(){
+  if(taster_stat == 1){
+    taster_stat = 0;
+    changeMode();
+  }
+}
+
 void changeMode(){
   mode = mode + 1;
   if(mode > 2) mode = 1;
-  //Serial.println(mode);
+  Serial.println(mode);
   startMode();
 }
 
@@ -147,16 +171,21 @@ void startMode(){
     Serial.println("Vitaldatenmessung");
     lcd.clear();
     printCharLcd("Vitaldaten", 0, 0);
-    printCharLcd("Messung", 1, 0);
-    delay(1000);
+    printCharLcd("Messung", 1, 0);  
   }else if(mode == 2){ //konzentrationsspiel
     Serial.println("Konzentrationsspiel");
     lcd.clear();
     printCharLcd("Konzentration", 0, 0);
     printCharLcd("Spiel", 1, 0);
-
-    gamestart = true;
   }
+  delay(1000);
+}
+
+void startScreen(){
+  Serial.println(">-------------------- Vitaldaten Projekt NwT Klasse 9 --------------------<");
+  lcd.clear();
+  printCharLcd("Vitaldatenprojekt", 0, 0);
+  printCharLcd("NwT Klasse 9", 1, 0);
 }
 
 void sensors(){
@@ -171,15 +200,64 @@ void sensors(){
 }
 
 void konzentrationsspiel(){
-  gamestart = false;
+  //reset everything
+  randomizeOrderArray();
+  order_index = 0;
+  game_round = 0;
+  gameover = false;
+
+
+  while(gameover == false && mode == 2){
+    checkTasterChange(); //check if interrupt
+    
+
+    if(order_index == game_round){ //not planned but finished all rounds
+      if(game_round == order_length){
+        Serial.println("Finished");
+        //buggy cuz it is called each frame !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+        lcd.clear();
+        printCharLcd("ouh you finished", 0, 0);
+        printCharLcd("all rounds! :D", 1, 0);
+      }else {
+        order_index = 0;
+        game_round++;  
+        led_stat = 0;
+        lcd.clear();
+        printCharLcd("--- Memorize ---", 0, 0);
+        printCharLcd("Runde:", 1, 0);
+        printNumLcd(game_round, 1, 7);
+
+        playSound(sound_gameRoundFinish, arr_length(sound_gameRoundFinish));   
+      }
+      
+    } else {
+      Taste = myKeypad.getKey();
+      controllLed();
+      Serial.println(order[order_index]);
+      if (Taste == ('0' + order[order_index])) {
+        Serial.println("right button");
+        order_index++;
+        playSound(sound_gameRight, arr_length(sound_gameRight));
+      }else if(Taste){ //wrong Key pressed
+        gameover = true;
+      }
+
+      if(led_stat == 0){
+        showLedOrder();
+        led_stat = 1;
+      }
+    }
+  }
+
+  //gameover
+  Serial.println("Game Over");
+  playSound(sound_gameover, arr_length(sound_gameover));
+  gameOver();
+
+  mode = 0;
 }
 
-void startScreen(){
-  Serial.println(">-------------------- Vitaldaten Projekt NwT Klasse 9 --------------------<");
-  lcd.clear();
-  printCharLcd("Vitaldatenprojekt", 0, 0);
-  printCharLcd("NwT Klasse 9", 1, 0);
-}
+
 
 // ~~~ all ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ all ~~~~~~~~~~~~~~
 
@@ -200,8 +278,57 @@ void printFloatLcd(float num, int cursorY, int cursorX){
   lcd.setCursor(cursorX, cursorY);
   lcd.print(num);
 }
+
+void playSound(int sound[], int sound_length){
+  for(int i = 0; i<sound_length; i++){
+    tone(BUZZ_PIN, sound[i]);
+    delay(200);
+    noTone(BUZZ_PIN);
+  }
+}
+
 // ~~~ Konzentrationsspiel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Konzentrationsspiel ~~~
 
+void showLedOrder(){
+  Serial.println("led order");
+  delay(500);
+  for(int i = 0; i<game_round; i++){
+    digitalWrite(order[i] + 21, HIGH);
+    delay(500);
+    digitalWrite(order[i] + 21, LOW);
+    delay(500);
+  }
+}
+
+void controllLed(){ 
+  if(Taste){
+    //Serial.println("led");
+    digitalWrite(CTRL_LED, HIGH);
+  }else{
+    digitalWrite(CTRL_LED, LOW);
+  }
+} 
+
+void pressedLEDglow(int led){
+  digitalWrite(led + 21, HIGH);
+  delay(300);
+  digitalWrite(led + 21, LOW);
+}
+
+void gameOver(){
+  lcd.clear();
+  printCharLcd("- Game  Over -", 0, 1);
+  printCharLcd("Runde:", 1, 0);
+  
+  printNumLcd(game_round, 1, 7);
+  printCharLcd(":(", 1, 14);
+
+  /*for(int i = 22; i<38; i++){
+    digitalWrite(i, HIGH);
+  }*/
+
+  //gameover = false;
+}
 
 // ~~~ Pulssensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pulssensor ~~~~~~~~~~~~~~~
 
@@ -221,3 +348,10 @@ void tempSensor(){
   delay(500);
 }
 
+// ~~~ Konzentratiosnspiel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
+
+void randomizeOrderArray(){
+  for(int i=0; i<order_length; i++) {
+    order[i] = random(1, 10);
+  }
+}
