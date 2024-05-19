@@ -6,13 +6,6 @@ Todo:
 Bugs:
  > um von laufendem konzentrationsspiel umzuschalten 2 mal klicken nötig (erst gameover...)
 
-char hexaKeys[ROWS][COLS] = { //Die Ziffern/Zeichen
-  {'D','#', '0', '*'},
-  {'C','9', '8', '7'},
-  {'B','6', '5', '4'},
-  {'A','3', '2', '1'}
-};
-
 */
 
 // <-> Initializing <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Initializing <->  //
