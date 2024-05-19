@@ -1,15 +1,10 @@
-// <-> Introduction <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Introduction <->  //
 /*
-  > "<-><->" --> main parts
-  > "------" --> initializing sub categories
-  > "~~~~~~" --> function sub categories
-
 
 Todo:
- > break(); --> um aus schleife auszubrechen (evt. bei konzentrationsspiel nötig)
+ > 
 
 Bugs:
- > 
+ > um von laufendem konzentrationsspiel umzuschalten 2 mal klicken nötig (erst gameover...)
 
 */
 
@@ -57,7 +52,7 @@ int puls_value = 0;
 int puls = 0;
 
 //------ konzentrationsspiel ----------------------------------------
-int order[30] = {}; //later with for 0 in array
+int order[30] = {};
 int order_index = 0; //index in order arr
 int order_length; //length of order array
 int game_round = 0; //current game round
@@ -211,12 +206,12 @@ void konzentrationsspiel(){
     checkTasterChange(); //check if interrupt
     
 
-    if(order_index == game_round){ //not planned but finished all rounds
+    if(order_index == game_round){ //sollte eigentlich nicht passieren
       if(game_round == order_length){
         Serial.println("Finished");
-        //buggy cuz it is called each frame !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !! ___ !!     !! W I C H T I G !!
+        //buggy cuz it is called each time 
         lcd.clear();
-        printCharLcd("ouh you finished", 0, 0);
+        printCharLcd("You finished", 0, 0);
         printCharLcd("all rounds! :D", 1, 0);
       }else {
         order_index = 0;
