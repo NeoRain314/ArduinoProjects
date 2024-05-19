@@ -6,6 +6,13 @@ Todo:
 Bugs:
  > um von laufendem konzentrationsspiel umzuschalten 2 mal klicken nötig (erst gameover...)
 
+char hexaKeys[ROWS][COLS] = { //Die Ziffern/Zeichen
+  {'D','#', '0', '*'},
+  {'C','9', '8', '7'},
+  {'B','6', '5', '4'},
+  {'A','3', '2', '1'}
+};
+
 */
 
 // <-> Initializing <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Initializing <->  //
@@ -16,17 +23,17 @@ Bugs:
 
 // ------ Keypad ----------------------------------------
 //defines Size of Keypad
-const byte COLS = 3; //3 Spalten
+const byte COLS = 4; //4 Spalten
 const byte ROWS = 4; //4 Zeilen; (schwarz)
 
 char hexaKeys[ROWS][COLS] = { //Die Ziffern/Zeichen
-  {'#', '0', '*'},
-  {'9', '8', '7'},
-  {'6', '5', '4'},
-  {'3', '2', '1'}
+  {16,15, 14, 13},
+  {12,11, 10, 9},
+  {8, 7, 6, 5},
+  {4, 3, 2, 1}
 };
 
-byte colPins[COLS] = { 8, 7, 6 }; //Definition der Pins für die 3 Spalten
+byte colPins[COLS] = { 9, 8, 7, 6 }; //Definition der Pins für die 3 Spalten
 byte rowPins[ROWS] = { 5, 4, 3, 2 };//Definition der Pins für die 4 Zeilen
 
 char Taste; //pressed Key
@@ -52,7 +59,7 @@ int puls_value = 0;
 int puls = 0;
 
 //------ konzentrationsspiel ----------------------------------------
-int order[30] = {};
+char order[30] = {}; //char --> 8bit Zahl (255 Zahlen; -128 bis +127)
 int order_index = 0; //index in order arr
 int order_length; //length of order array
 int game_round = 0; //current game round
@@ -110,7 +117,7 @@ void setup() {
     delay(200);
     digitalWrite(i, LOW);
     delay(200);
-  }  */
+  } */
 
 
   // start screen
@@ -194,7 +201,7 @@ void sensors(){
   printNumLcd(puls, 1, 5);
 }
 
-void konzentrationsspiel(){
+void konzentrationsspiel(){ // ------------------------------------------------------- Konzentrationsspiel main function --------- \\ 
   //reset everything
   randomizeOrderArray();
   order_index = 0;
@@ -228,8 +235,8 @@ void konzentrationsspiel(){
     } else {
       Taste = myKeypad.getKey();
       controllLed();
-      Serial.println(order[order_index]);
-      if (Taste == ('0' + order[order_index])) {
+      //Serial.println(order[order_index]);
+      if (Taste == (order[order_index])) {
         Serial.println("right button");
         order_index++;
         playSound(sound_gameRight, arr_length(sound_gameRight));
@@ -347,6 +354,6 @@ void tempSensor(){
 
 void randomizeOrderArray(){
   for(int i=0; i<order_length; i++) {
-    order[i] = random(1, 10);
+    order[i] = random(1, 17);
   }
 }
