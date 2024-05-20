@@ -335,11 +335,11 @@ void pulsSensor(){
 
 void tempSensor(){
   temp_value = analogRead(TEMP_SENSOR_PIN);
-  temp_value /= 10;
-  temperatur = map(temp_value, 42, 20, 215, 99); 
-  temperatur /= 10;
+  temperatur = map(temp_value, 29, 79, 16, 40);
   
-  Serial.println(temperatur);
+  Serial.print("Temperatur: ");
+  Serial.print(temperatur);
+  Serial.println(" C°");
   delay(500);
 }
 
