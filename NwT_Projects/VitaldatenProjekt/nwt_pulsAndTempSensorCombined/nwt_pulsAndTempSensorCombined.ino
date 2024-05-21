@@ -1,13 +1,15 @@
-int SensorPin = A3;
+
+//pulsesensor
+int SensorPin = A10;
 int LED = 13; 
-
-
-int Sensorwert;
 int Grenzwert = 800;
-
 int stat = 0;
 unsigned long startTime = 0;
 int puls = 0;
+
+//tempsensor
+int sensor = A0;
+float temperatur;
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -15,14 +17,22 @@ void setup() {
 }
 
 void loop() {
-  Sensorwert = analogRead(SensorPin);
-  Serial.print("Wert:");
-  Serial.print(Sensorwert);
-  Serial.print(",A:200");
-  Serial.println(",B:900");
+  tempsensor();
+  pulsesensor();
+}
 
+void tempsensor(){
+  int messwert;
+  messwert = analogRead(sensor);
+  messwert = analogRead(sensor);
+  temperatur = map(messwert, 29, 79, 16, 40);
+  /*Serial.print(temperatur);
+  Serial.println(" C°");*/
+}
 
+void pulsesensor(){
   if(millis() < startTime + 15000){
+    int Sensorwert = analogRead(SensorPin);
     if (Sensorwert > Grenzwert && stat == 0) {
       digitalWrite(LED, HIGH);
       stat = 1;
@@ -39,6 +49,4 @@ void loop() {
     puls = 0;
     startTime = millis();
   }
-
-  delay(10);
 }

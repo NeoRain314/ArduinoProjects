@@ -40,16 +40,17 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define TASTER_PIN 18
 int mode = 0; //0 -> start; 1 --> Konzentrationsspiel; 2 -> Puls & Temp
 volatile int taster_stat = 0;
+unsigned long timer_start = 0; //for sensors, so the values are only written each ... (5?) sec
 
 // ------ temperatursensor -----------------------------------------
 #define TEMP_SENSOR_PIN A0
-int temp_value = 0;
+//temp_value defined in tempsensor();
 float temperatur = 0;
 
 // ------ pulssensor -----------------------------------------------
 #define PULS_SENSOR_PIN A3
 int puls_limitValue = 800;
-int puls_value = 0;
+//puls_value defined in pulssensor();
 int puls_counter = 0;
 int puls = 0;
 int puls_stat = 0;
@@ -192,12 +193,18 @@ void sensors(){
   tempSensor();
   pulsSensor();
 
-  lcd.clear();
-  printCharLcd("Temperatur:", 0, 0);
-  printFloatLcd(temperatur, 0, 11);
-  printCharLcd("Puls:", 1, 0);
-  printNumLcd(puls, 1, 5);
-  delay(500);
+  //every xy seconds the values should be written on the display
+  if(millis() > timer_start + 1000){
+    lcd.clear();
+    printCharLcd("Temperatur:", 0, 0);
+    printFloatLcd(temperatur, 0, 11);
+    printCharLcd("Puls:", 1, 0);
+    printNumLcd(puls, 1, 5);
+    //delay(500);
+
+    timer_start = millis();
+  }
+  
 }
 
 void konzentrationsspiel(){ // ------------------------------------------------------- Konzentrationsspiel main function --------- \\ 
@@ -334,7 +341,7 @@ void gameOver(){
 // ~~~ Pulssensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pulssensor ~~~~~~~~~~~~~~~
 
 void pulsSensor(){
-  puls_value = analogRead(PULS_SENSOR_PIN);
+  int puls_value = analogRead(PULS_SENSOR_PIN);
 
   if(millis() < puls_startTime + 15000){
     if (puls_value > puls_limitValue && puls_stat == 0) {
@@ -350,7 +357,6 @@ void pulsSensor(){
     puls = puls_counter*4;
     puls_counter = 0;
     puls_startTime = millis();
-
     /*Serial.print("Puls: ");
     Serial.println(puls);*/
   }
@@ -359,7 +365,9 @@ void pulsSensor(){
 // ~~~ Temperatursensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
 
 void tempSensor(){
+  int temp_value = 0;
   temp_value = analogRead(TEMP_SENSOR_PIN);
+  temp_value = analogRead(TEMP_SENSOR_PIN); //analogRead two times because Arduino has only one ADC (Analog to Digital Converter) and has to switch to the right pin (needs a "cool of")
   temperatur = map(temp_value, 29, 79, 16, 40);
   
   Serial.print("Temperatur: ");
