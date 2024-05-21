@@ -200,8 +200,7 @@ void sensors(){
     printFloatLcd(temperatur, 0, 11);
     printCharLcd("Puls:", 1, 0);
     printNumLcd(puls, 1, 5);
-    //delay(500);
-
+    
     timer_start = millis();
   }
   
