@@ -42,7 +42,7 @@ int mode = 0; //0 -> start; 1 --> Konzentrationsspiel; 2 -> Puls & Temp
 volatile int taster_stat = 0;
 unsigned long timer_start = 0; //for sensors, so the values are only written each ... (5?) sec
 
-// ------ temperatursensor -----------------------------------------
+// ------ temperatursensor ----------------------------------------- 
 #define TEMP_SENSOR_PIN A0
 //temp_value defined in tempsensor();
 float temperatur = 0;
@@ -200,7 +200,7 @@ void sensors(){
     printFloatLcd(temperatur, 0, 11);
     printCharLcd("Puls:", 1, 0);
     printNumLcd(puls, 1, 5);
-    
+
     timer_start = millis();
   }
   
