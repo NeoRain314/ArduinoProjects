@@ -1,28 +1,43 @@
-int SensorPin = A3;  // Signalleitung an Analoa A0
-int LED = 13;        // LED an Port 13 wird verwendet
+int SensorPin = A3;
+int LED = 13; 
 
 
-int Sensorwert;       // Variable für den Sensworwert
-int Grenzwert = 510;  // Grenzwert, ab dem die LED an Pin13 später leuchten soll
+int Sensorwert;
+int Grenzwert = 800;
+
+int stat = 0;
+unsigned long startTime = 0;
+int puls = 0;
 
 void setup() {
-  pinMode(LED, OUTPUT);  // Pin 13 ist ein Ausgang, damit die LED mit Spannung versorgt wird
-  Serial.begin(9600);    // Serielle Verbindung starten, damit Daten am Seriellen Monitor angezeigt werden können
+  pinMode(LED, OUTPUT);
+  Serial.begin(9600);
 }
 
 void loop() {
-  Sensorwert = analogRead(SensorPin);  // Sensorwert vom Sensor auslesen und unter der Variablen "Sensor" abspeichern
+  Sensorwert = analogRead(SensorPin);
   Serial.print("Wert:");
-  Serial.print(Sensorwert);          // Sensorwert über die Serielle Schnittstelle an den PC senden.
-  Serial.print(",A:500");
-  Serial.println(",B:600");
+  Serial.print(Sensorwert);
+  Serial.print(",A:200");
+  Serial.println(",B:900");
 
-  if (Sensorwert > Grenzwert)  // Hier wird eine Verarbeitung gestartet. Wenn der Sensorwert über dem Grenzwert ist...
-  {
-    digitalWrite(LED, HIGH);  // ...dann soll die LED leuchten
-  } else                      // Ansonsten...
-  {
-    digitalWrite(LED, LOW);  //  ...ist die LED aus
+
+  if(millis() < startTime + 15000){
+    if (Sensorwert > Grenzwert && stat == 0) {
+      digitalWrite(LED, HIGH);
+      stat = 1;
+      puls++;
+      Serial.println(puls);
+    } else if(Sensorwert < Grenzwert && stat == 1){
+      digitalWrite(LED, LOW);
+      stat = 0;
+    }
+  }else{
+    puls = puls*4;
+    Serial.print("Puls: ");
+    Serial.println(puls);
+    puls = 0;
+    startTime = millis();
   }
 
   delay(10);  // Kurze Pause im Code, damit die Messwerte besser zu erkennen sind.

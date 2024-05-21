@@ -14,7 +14,7 @@ Bugs:
 #include <Key.h>
 #include <Keypad.h>
 
-// ------ Keypad ----------------------------------------
+// ------ Keypad ----------------------------------------------------
 //defines Size of Keypad
 const byte COLS = 4; //4 Spalten
 const byte ROWS = 4; //4 Zeilen; (schwarz)
@@ -36,7 +36,7 @@ Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 
-// ------ main ----------------------------------------------------
+// ------ main -----------------------------------------------------
 #define TASTER_PIN 18
 int mode = 0; //0 -> start; 1 --> Konzentrationsspiel; 2 -> Puls & Temp
 volatile int taster_stat = 0;
@@ -48,8 +48,13 @@ float temperatur = 0;
 
 // ------ pulssensor -----------------------------------------------
 #define PULS_SENSOR_PIN A3
+int puls_limitValue = 800;
 int puls_value = 0;
+int puls_counter = 0;
 int puls = 0;
+int puls_stat = 0;
+unsigned long puls_startTime = 0;
+// ctr led defined in konzentrationsspiel
 
 //------ konzentrationsspiel ----------------------------------------
 char order[30] = {}; //char --> 8bit Zahl (255 Zahlen; -128 bis +127)
@@ -192,6 +197,7 @@ void sensors(){
   printFloatLcd(temperatur, 0, 11);
   printCharLcd("Puls:", 1, 0);
   printNumLcd(puls, 1, 5);
+  delay(500);
 }
 
 void konzentrationsspiel(){ // ------------------------------------------------------- Konzentrationsspiel main function --------- \\ 
@@ -328,7 +334,26 @@ void gameOver(){
 // ~~~ Pulssensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pulssensor ~~~~~~~~~~~~~~~
 
 void pulsSensor(){
-  puls = 0;
+  puls_value = analogRead(PULS_SENSOR_PIN);
+
+  if(millis() < puls_startTime + 15000){
+    if (puls_value > puls_limitValue && puls_stat == 0) {
+      digitalWrite(CTRL_LED, HIGH);
+      puls_stat = 1;
+      puls_counter++;
+      //Serial.println(puls);
+    } else if(puls_value < puls_limitValue && puls_stat == 1){
+      digitalWrite(CTRL_LED, LOW);
+      puls_stat = 0;
+    }
+  }else{
+    puls = puls_counter*4;
+    puls_counter = 0;
+    puls_startTime = millis();
+
+    /*Serial.print("Puls: ");
+    Serial.println(puls);*/
+  }
 }
 
 // ~~~ Temperatursensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
@@ -340,7 +365,6 @@ void tempSensor(){
   Serial.print("Temperatur: ");
   Serial.print(temperatur);
   Serial.println(" C°");
-  delay(500);
 }
 
 // ~~~ Konzentratiosnspiel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
