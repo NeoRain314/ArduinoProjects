@@ -2,6 +2,7 @@
     >>> ToDo <<<
   - Display show 0 from countdown??
   - after abbruch (interrupt) noting works
+  - irgendwas it gruppe cd oder ab kaputt (auch auf lcd display was angezeigt wird und so)
 
 
 
@@ -32,7 +33,8 @@ bool terminate = false;
 int taster_stat = 0;
 
 //mode variables
-bool mode_AB = false; //true/false
+bool mode_ABCD = false; //true/false
+char curr_group = "AB"; //AB/CD
 
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -56,7 +58,7 @@ void setup() {
   printCharLcd("Ampel", 5, 0);
 
   //set variables
-  shooting_time = secInMil(10);
+  //shooting_time = secInMil(10);
   preparing_time = secInMil(3);
 }
 
@@ -66,6 +68,7 @@ void loop() {
   }
   if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
     taster_stat = 0;
+    setMode(10, true);
     executeMode();
   }
 
@@ -73,11 +76,11 @@ void loop() {
 
 // -------------------------------------------------------------------------------
 
-void setMode(int time, bool AB){ //time in minutes; ab mode true or false
-  shooting_time = minInMil(time);
-  mode_AB = AB;
+void setMode(int time, bool ABCD){ //time in minutes; ab mode true or false
+  shooting_time = secInMil(time);
+  mode_ABCD = ABCD;
 }
-y
+
 void executeMode(){
   //reset
   if(millis() < start_time) Serial.print("!!!! ACHTUNG RESTARTEN - TIME OVERFLOW !!!!"); //TIME OVERFLOW!!!!! (this happens after ca. 1193h, then nothing works bis you restart)
@@ -93,23 +96,10 @@ void executeMode(){
     digitalWrite(RED_PIN, HIGH);
     writeTime(computeCountdown(preparing_time));
   }
-  
 
-  start_time = millis();
-  playTone(440, 700);
-  //green time
-  while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
-    digitalWrite(RED_PIN, LOW);
-    digitalWrite(GREEN_PIN, HIGH);
-    writeTime(computeCountdown(shooting_time));
-  }
+  shootingCountdown(); //green and yellow time
+  if(mode_ABCD) shootingCountdown(); //if ABCD agaiin
 
-  //yellow time
-  while(millis() <= start_time + shooting_time){
-    digitalWrite(GREEN_PIN, LOW);
-    digitalWrite(YELLOW_PIN, HIGH);
-    writeTime(computeCountdown(shooting_time));
-  }
 
   //red! Finished
   digitalWrite(YELLOW_PIN, LOW);
@@ -130,6 +120,38 @@ void executeMode(){
   
 }
 
+
+void shootingCountdown(){
+  start_time = millis();
+  playTone(440, 700);
+
+ /* if(mode_ABCD){
+    if(curr_group == "AB"){
+      printCharLcd("AB", 0, 1);
+      curr_group = "CD";
+    }else{
+      printCharLcd("CD", 0, 1);
+      curr_group = "AB";
+    }
+  }*/
+  
+
+  //green time
+  while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
+    digitalWrite(RED_PIN, LOW);
+    digitalWrite(GREEN_PIN, HIGH);
+    writeTime(computeCountdown(shooting_time));
+  }
+
+  //yellow time
+  while(millis() <= start_time + shooting_time){
+    digitalWrite(GREEN_PIN, LOW);
+    digitalWrite(YELLOW_PIN, HIGH);
+    writeTime(computeCountdown(shooting_time));
+  }
+}
+
+
 void terminateAll(){
   terminate = true;
   shooting_time = 0;
@@ -139,15 +161,24 @@ void terminateAll(){
   digitalWrite(RED_PIN, HIGH);
 }
 
-void writeTime(int zeit){
+void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
   if(zeit != old_disp_time){
     old_disp_time = zeit;
     lcd.clear();
     printIntLcd(zeit, 0, 0);
     Serial.println(zeit);
   }
-}
 
+  if(mode_ABCD){
+    if(curr_group == "AB"){
+      printCharLcd("AB", 0, 1);
+      curr_group = "CD";
+    }else{
+      printCharLcd("CD", 0, 1);
+      curr_group = "AB";
+    }
+  }
+}
 
 // ----------------------------- Help Functions ----------------------------------
 int secInMil(int sec){
