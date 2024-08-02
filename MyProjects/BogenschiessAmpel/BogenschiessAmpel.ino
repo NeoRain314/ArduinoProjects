@@ -1,6 +1,7 @@
 /*-------------------------------------------------------------
     >>> ToDo <<<
-  - Display show 0 from countdown
+  - Display show 0 from countdown??
+  - after abbruch (interrupt) noting works
 
 
 
@@ -8,37 +9,45 @@
 -------------------------------------------------------------*/
 
 
-
 #include <LiquidCrystal_I2C.h>
 
 //max millis time:  .046471111111h
 
-#define RED_PIN 7
-#define YELLOW_PIN 2
-#define GREEN_PIN 3
+#define RED_PIN 8
+#define YELLOW_PIN 9
+#define GREEN_PIN 10
 
-#define START_BUTTON_PIN 4
+#define START_BUTTON_PIN 6
 
-#define BUZZER_PIN 13
+#define BUZZER_PIN 7
+#define INTERRUPT_PIN 2
 
 unsigned long shooting_time = 0; //modus später
 unsigned long start_time = 0;
 unsigned long preparing_time = 0;
 unsigned long old_disp_time = 0; //to remember the old display time to update it everytime it changes
 
+bool terminate = false;
+
 int taster_stat = 0;
+
+//mode variables
+bool mode_AB = false; //true/false
+
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
   //initializing
   Serial.begin(9600);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), terminateAll, FALLING);
 
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
 
   pinMode(START_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
 
   lcd.init();
   lcd.clear();
@@ -57,15 +66,19 @@ void loop() {
   }
   if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
     taster_stat = 0;
-    mode();
+    executeMode();
   }
 
 }
 
 // -------------------------------------------------------------------------------
 
-
-void mode(){
+void setMode(int time, bool AB){ //time in minutes; ab mode true or false
+  shooting_time = minInMil(time);
+  mode_AB = AB;
+}
+y
+void executeMode(){
   //reset
   if(millis() < start_time) Serial.print("!!!! ACHTUNG RESTARTEN - TIME OVERFLOW !!!!"); //TIME OVERFLOW!!!!! (this happens after ca. 1193h, then nothing works bis you restart)
   start_time = millis();
@@ -74,26 +87,28 @@ void mode(){
   digitalWrite(RED_PIN, LOW);
 
   //prepare time (red)
+  playTone(440, 700);
+  playTone(440, 700);
   while(millis() <= start_time + preparing_time){
     digitalWrite(RED_PIN, HIGH);
-    writeTime(preparing_time/1000 - (millis()- start_time) / 1000);
+    writeTime(computeCountdown(preparing_time));
   }
   
 
   start_time = millis();
-
+  playTone(440, 700);
   //green time
   while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
     digitalWrite(GREEN_PIN, HIGH);
-    writeTime(shooting_time/1000 - (millis()- start_time) / 1000);
+    writeTime(computeCountdown(shooting_time));
   }
 
   //yellow time
   while(millis() <= start_time + shooting_time){
     digitalWrite(GREEN_PIN, LOW);
     digitalWrite(YELLOW_PIN, HIGH);
-    writeTime(shooting_time/1000 - (millis()- start_time) / 1000);
+    writeTime(computeCountdown(shooting_time));
   }
 
   //red! Finished
@@ -101,28 +116,28 @@ void mode(){
   digitalWrite(RED_PIN, HIGH);
   lcd.clear();
   printCharLcd("Time up!", 4, 0);
-}
 
-
-void ampel(){
-  tone(BUZZER_PIN, 440);
-  delay(1000);
-  noTone(BUZZER_PIN);
+  if(terminate){  //Abbruch
+    for(int i=0; i<6; i++){
+      playTone(800, 500);
+    }
+    terminate = false;
+  }else{          //norm. Ende
+    playTone(440, 700);
+    playTone(440, 700);
+    playTone(440, 700);
+  }
   
-  digitalWrite(RED_PIN, HIGH);
-  delay(500);
-  digitalWrite(RED_PIN, LOW);
-  digitalWrite(YELLOW_PIN, HIGH);
-  delay(500);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(GREEN_PIN, HIGH);
-  delay(500);
-
-  digitalWrite(RED_PIN, LOW);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(GREEN_PIN, LOW);
 }
 
+void terminateAll(){
+  terminate = true;
+  shooting_time = 0;
+  preparing_time = 0;
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, HIGH);
+}
 
 void writeTime(int zeit){
   if(zeit != old_disp_time){
@@ -143,6 +158,10 @@ int minInMil(int min){
   return min * 60 * 1000;
 }
 
+int computeCountdown(unsigned long time){ //computes the remaining time of the current countdown
+  return time/1000 - (millis()- start_time) / 1000;
+}
+
 void printCharLcd(char text[], int cursorX, int cursorY){
   //Lcd.clear();
   lcd.setCursor(cursorX, cursorY);
@@ -159,6 +178,13 @@ void printFloatLcd(float num, int cursorY, int cursorX){
   //Lcd.clear();
   lcd.setCursor(cursorX, cursorY);
   lcd.print(num);
+}
+
+void playTone(int f, int dur){
+  tone(BUZZER_PIN, f);
+  delay(dur); //tone duration
+  noTone(BUZZER_PIN);
+  delay(dur); //pause == tone dur
 }
 
 

@@ -16,21 +16,21 @@ Bugs:
 
 // ------ Keypad ----------------------------------------------------
 //defines Size of Keypad
-const byte COLS = 4; //4 Spalten
-const byte ROWS = 4; //4 Zeilen; (schwarz)
+const byte COLS = 4;  //4 Spalten
+const byte ROWS = 4;  //4 Zeilen; (schwarz)
 
-char hexaKeys[ROWS][COLS] = { //Die Ziffern/Zeichen
-  {16,15, 14, 13},
-  {12,11, 10, 9},
-  {8, 7, 6, 5},
-  {4, 3, 2, 1}
+char hexaKeys[ROWS][COLS] = {  //Die Ziffern/Zeichen
+  { 16, 15, 14, 13 },
+  { 12, 11, 10, 9 },
+  { 8, 7, 6, 5 },
+  { 4, 3, 2, 1 }
 };
 
-byte colPins[COLS] = { 9, 8, 7, 6 }; //Definition der Pins für die 3 Spalten
-byte rowPins[ROWS] = { 5, 4, 3, 2 };//Definition der Pins für die 4 Zeilen
+byte colPins[COLS] = { 9, 8, 7, 6 };  //Definition der Pins für die 3 Spalten
+byte rowPins[ROWS] = { 5, 4, 3, 2 };  //Definition der Pins für die 4 Zeilen
 
-char Taste; //pressed Key
-Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
+char Taste;  //pressed Key
+Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 // ------ LCD Display ----------------------------------------------
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -38,11 +38,11 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ------ main -----------------------------------------------------
 #define TASTER_PIN 18
-int mode = 0; //0 -> start; 1 --> Konzentrationsspiel; 2 -> Puls & Temp
+int mode = 0;  //0 -> start; 1 --> Konzentrationsspiel; 2 -> Puls & Temp
 volatile int taster_stat = 0;
-unsigned long timer_start = 0; //for sensors, so the values are only written each ... (5?) sec
+unsigned long timer_start = 0;  //for sensors, so the values are only written each ... (5?) sec
 
-// ------ temperatursensor ----------------------------------------- 
+// ------ temperatursensor -----------------------------------------
 #define TEMP_SENSOR_PIN A0
 //temp_value defined in tempsensor();
 float temperatur = 0;
@@ -58,11 +58,11 @@ unsigned long puls_startTime = 0;
 // ctr led defined in konzentrationsspiel
 
 //------ konzentrationsspiel ----------------------------------------
-char order[30] = {}; //char --> 8bit Zahl (255 Zahlen; -128 bis +127)
-int order_index = 0; //index in order arr
-int order_length; //length of order array
-int game_round = 0; //current game round
-int led_stat = 0; //stat if leds were shown or not
+char order[30] = {};  //char --> 8bit Zahl (255 Zahlen; -128 bis +127)
+int order_index = 0;  //index in order arr
+int order_length;     //length of order array
+int game_round = 0;   //current game round
+int led_stat = 0;     //stat if leds were shown or not
 bool gameover = false;
 
 #define CTRL_LED 13
@@ -71,9 +71,9 @@ bool gameover = false;
 #define arr_length(a) (sizeof(a) / sizeof(a[0]))
 
 // ------ Sounds ----------------------------------------
-int sound_gameRight[1] = {440};
-int sound_gameover[4] = {210, 190, 210, 130};
-int sound_gameRoundFinish[1] = { 587};
+int sound_gameRight[1] = { 440 };
+int sound_gameover[4] = { 210, 190, 210, 130 };
+int sound_gameRoundFinish[1] = { 587 };
 
 
 // <-> Setup <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Setup <->  //
@@ -84,7 +84,7 @@ void setup() {
   lcd.init();
   lcd.clear();
   lcd.backlight();
- 
+
 
   //main ----------------------------------------------------
   pinMode(TASTER_PIN, INPUT_PULLUP);
@@ -103,11 +103,11 @@ void setup() {
 
   order_length = sizeof(order) / sizeof(order[0]);
   //randomizeOrderArray(); //wird am anfang von konzentrationsspiel gemacht
-  
+
   pinMode(CTRL_LED, OUTPUT);
 
-  for(int i = 22; i<38; i++){
-    pinMode(i, OUTPUT); //16 leds (Display)
+  for (int i = 22; i < 38; i++) {
+    pinMode(i, OUTPUT);  //16 leds (Display)
   }
 
   //just for testing the leds and make sure everything is working
@@ -121,19 +121,19 @@ void setup() {
 
   // start screen
   startScreen();
-  taster_stat = 0; // Interrupt wird aus irgeneinem Grund davor schon aufgerufen, deshalb nochmal auf 0
+  taster_stat = 0;  // Interrupt wird aus irgeneinem Grund davor schon aufgerufen, deshalb nochmal auf 0
 }
 
 
 // <-> Loop <-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-><-> Loop <->  //
 
 void loop() {
-  
+
   checkTasterChange();
 
-  if(mode == 1){ //temp- & pulssensor
+  if (mode == 1) {  //temp- & pulssensor
     sensors();
-  }else if(mode == 2){ //konzentrationsspiel
+  } else if (mode == 2) {  //konzentrationsspiel
     konzentrationsspiel();
   }
 }
@@ -143,37 +143,37 @@ void loop() {
 
 
 // ~~~ main ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ main ~~~~~~~~~~~~
-volatile unsigned long alteZeit=0, entprellZeit=500;
+volatile unsigned long alteZeit = 0, entprellZeit = 500;
 
-void tasterInterrupt(){
-  if((millis() - alteZeit) > entprellZeit) { 
+void tasterInterrupt() {
+  if ((millis() - alteZeit) > entprellZeit) {
     taster_stat = 1;
     //Serial.println("Taser Interrupt");
-    alteZeit = millis(); //letzte Schaltzeit merken      
+    alteZeit = millis();  //letzte Schaltzeit merken
   }
 }
 
-void checkTasterChange(){
-  if(taster_stat == 1){
+void checkTasterChange() {
+  if (taster_stat == 1) {
     taster_stat = 0;
     changeMode();
   }
 }
 
-void changeMode(){
+void changeMode() {
   mode = mode + 1;
-  if(mode > 2) mode = 1;
+  if (mode > 2) mode = 1;
   Serial.println(mode);
   startMode();
 }
 
-void startMode(){
-  if(mode == 1){ //temp- & pulssensor
+void startMode() {
+  if (mode == 1) {  //temp- & pulssensor
     Serial.println("Vitaldatenmessung");
     lcd.clear();
     printCharLcd("Vitaldaten", 0, 0);
-    printCharLcd("Messung", 1, 0);  
-  }else if(mode == 2){ //konzentrationsspiel
+    printCharLcd("Messung", 1, 0);
+  } else if (mode == 2) {  //konzentrationsspiel
     Serial.println("Konzentrationsspiel");
     lcd.clear();
     printCharLcd("Konzentration", 0, 0);
@@ -182,19 +182,19 @@ void startMode(){
   delay(1000);
 }
 
-void startScreen(){
+void startScreen() {
   Serial.println(">-------------------- Vitaldaten Projekt NwT Klasse 9 --------------------<");
   lcd.clear();
   printCharLcd("Vitaldatenprojekt", 0, 0);
   printCharLcd("NwT Klasse 9", 1, 0);
 }
 
-void sensors(){
+void sensors() {
   tempSensor();
   pulsSensor();
 
   //every xy seconds the values should be written on the display
-  if(millis() > timer_start + 1000){
+  if (millis() > timer_start + 1000) {
     lcd.clear();
     printCharLcd("Temperatur:", 0, 0);
     printFloatLcd(temperatur, 0, 11);
@@ -203,10 +203,9 @@ void sensors(){
 
     timer_start = millis();
   }
-  
 }
 
-void konzentrationsspiel(){ // ------------------------------------------------------- Konzentrationsspiel main function --------- \\ 
+void konzentrationsspiel() {  // ------------------------------------------------------- Konzentrationsspiel main function --------- \\ 
   //reset everything
   randomizeOrderArray();
   order_index = 0;
@@ -214,29 +213,29 @@ void konzentrationsspiel(){ // -------------------------------------------------
   gameover = false;
 
 
-  while(gameover == false && mode == 2){
-    checkTasterChange(); //check if interrupt
-    
+  while (gameover == false && mode == 2) {
+    checkTasterChange();  //check if interrupt
 
-    if(order_index == game_round){ //sollte eigentlich nicht passieren
-      if(game_round == order_length){
+
+    if (order_index == game_round) {  //sollte eigentlich nicht passieren
+      if (game_round == order_length) {
         Serial.println("Finished");
-        //buggy cuz it is called each time 
+        //buggy cuz it is called each time
         lcd.clear();
         printCharLcd("You finished", 0, 0);
         printCharLcd("all rounds! :D", 1, 0);
-      }else {
+      } else {
         order_index = 0;
-        game_round++;  
+        game_round++;
         led_stat = 0;
         lcd.clear();
         printCharLcd("--- Memorize ---", 0, 0);
         printCharLcd("Runde:", 1, 0);
         printNumLcd(game_round, 1, 7);
 
-        playSound(sound_gameRoundFinish, arr_length(sound_gameRoundFinish));   
+        playSound(sound_gameRoundFinish, arr_length(sound_gameRoundFinish));
       }
-      
+
     } else {
       Taste = myKeypad.getKey();
       controllLed();
@@ -245,11 +244,11 @@ void konzentrationsspiel(){ // -------------------------------------------------
         Serial.println("right button");
         order_index++;
         playSound(sound_gameRight, arr_length(sound_gameRight));
-      }else if(Taste){ //wrong Key pressed
+      } else if (Taste) {  //wrong Key pressed
         gameover = true;
       }
 
-      if(led_stat == 0){
+      if (led_stat == 0) {
         showLedOrder();
         led_stat = 1;
       }
@@ -268,26 +267,26 @@ void konzentrationsspiel(){ // -------------------------------------------------
 
 // ~~~ all ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ all ~~~~~~~~~~~~~~
 
-void printCharLcd(char text[], int cursorX, int cursorY){
+void printCharLcd(char text[], int cursorX, int cursorY) {
   //Lcd.clear();
   lcd.setCursor(cursorY, cursorX);
   lcd.print(text);
 }
 
-void printNumLcd(int num, int cursorX, int cursorY){
+void printNumLcd(int num, int cursorX, int cursorY) {
   //Lcd.clear();
   lcd.setCursor(cursorY, cursorX);
   lcd.print(num);
 }
 
-void printFloatLcd(float num, int cursorY, int cursorX){
+void printFloatLcd(float num, int cursorY, int cursorX) {
   //Lcd.clear();
   lcd.setCursor(cursorX, cursorY);
   lcd.print(num);
 }
 
-void playSound(int sound[], int sound_length){
-  for(int i = 0; i<sound_length; i++){
+void playSound(int sound[], int sound_length) {
+  for (int i = 0; i < sound_length; i++) {
     tone(BUZZ_PIN, sound[i]);
     delay(200);
     noTone(BUZZ_PIN);
@@ -296,10 +295,10 @@ void playSound(int sound[], int sound_length){
 
 // ~~~ Konzentrationsspiel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Konzentrationsspiel ~~~
 
-void showLedOrder(){
+void showLedOrder() {
   Serial.println("led order");
   delay(500);
-  for(int i = 0; i<game_round; i++){
+  for (int i = 0; i < game_round; i++) {
     digitalWrite(order[i] + 21, HIGH);
     delay(500);
     digitalWrite(order[i] + 21, LOW);
@@ -307,26 +306,26 @@ void showLedOrder(){
   }
 }
 
-void controllLed(){ 
-  if(Taste){
+void controllLed() {
+  if (Taste) {
     //Serial.println("led");
     digitalWrite(CTRL_LED, HIGH);
-  }else{
+  } else {
     digitalWrite(CTRL_LED, LOW);
   }
-} 
+}
 
-void pressedLEDglow(int led){
+void pressedLEDglow(int led) {
   digitalWrite(led + 21, HIGH);
   delay(300);
   digitalWrite(led + 21, LOW);
 }
 
-void gameOver(){
+void gameOver() {
   lcd.clear();
   printCharLcd("- Game  Over -", 0, 1);
   printCharLcd("Runde:", 1, 0);
-  
+
   printNumLcd(game_round, 1, 7);
   printCharLcd(":(", 1, 14);
 
@@ -339,21 +338,21 @@ void gameOver(){
 
 // ~~~ Pulssensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pulssensor ~~~~~~~~~~~~~~~
 
-void pulsSensor(){
+void pulsSensor() {
   int puls_value = analogRead(PULS_SENSOR_PIN);
 
-  if(millis() < puls_startTime + 15000){
+  if (millis() < puls_startTime + 15000) {
     if (puls_value > puls_limitValue && puls_stat == 0) {
       digitalWrite(CTRL_LED, HIGH);
       puls_stat = 1;
       puls_counter++;
       //Serial.println(puls);
-    } else if(puls_value < puls_limitValue && puls_stat == 1){
+    } else if (puls_value < puls_limitValue && puls_stat == 1) {
       digitalWrite(CTRL_LED, LOW);
       puls_stat = 0;
     }
-  }else{
-    puls = puls_counter*4;
+  } else {
+    puls = puls_counter * 4;
     puls_counter = 0;
     puls_startTime = millis();
     /*Serial.print("Puls: ");
@@ -363,12 +362,12 @@ void pulsSensor(){
 
 // ~~~ Temperatursensor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
 
-void tempSensor(){
+void tempSensor() {
   int temp_value = 0;
   temp_value = analogRead(TEMP_SENSOR_PIN);
-  temp_value = analogRead(TEMP_SENSOR_PIN); //analogRead two times because Arduino has only one ADC (Analog to Digital Converter) and has to switch to the right pin (needs a "cool of")
+  temp_value = analogRead(TEMP_SENSOR_PIN);  //analogRead two times because Arduino has only one ADC (Analog to Digital Converter) and has to switch to the right pin (needs a "cool of")
   temperatur = map(temp_value, 29, 79, 16, 40);
-  
+
   Serial.print("Temperatur: ");
   Serial.print(temperatur);
   Serial.println(" C°");
@@ -376,8 +375,8 @@ void tempSensor(){
 
 // ~~~ Konzentratiosnspiel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temperatursensor ~~~~~~~~~~~~~~~
 
-void randomizeOrderArray(){
-  for(int i=0; i<order_length; i++) {
+void randomizeOrderArray() {
+  for (int i = 0; i < order_length; i++) {
     order[i] = random(1, 17);
   }
 }
