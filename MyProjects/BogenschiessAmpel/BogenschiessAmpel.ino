@@ -1,8 +1,8 @@
 /*-------------------------------------------------------------
     >>> ToDo <<<
   - Display show 0 from countdown??
-  - after abbruch (interrupt) noting works
-  - irgendwas it gruppe cd oder ab kaputt (auch auf lcd display was angezeigt wird und so)
+  - after abbruch (interrupt) noting works)
+  - instead of 0 and 1 AB and CD on display
 
 
 
@@ -34,7 +34,7 @@ int taster_stat = 0;
 
 //mode variables
 bool mode_ABCD = false; //true/false
-char curr_group = "AB"; //AB/CD
+int curr_group = 0; //0 = AB/ 1 = CD
 
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -97,8 +97,16 @@ void executeMode(){
     writeTime(computeCountdown(preparing_time));
   }
 
+
+  
+
   shootingCountdown(); //green and yellow time
-  if(mode_ABCD) shootingCountdown(); //if ABCD agaiin
+  
+  if(mode_ABCD){
+    changeGroup();
+    shootingCountdown(); //if ABCD agaiin
+  }
+   
 
 
   //red! Finished
@@ -125,17 +133,7 @@ void shootingCountdown(){
   start_time = millis();
   playTone(440, 700);
 
- /* if(mode_ABCD){
-    if(curr_group == "AB"){
-      printCharLcd("AB", 0, 1);
-      curr_group = "CD";
-    }else{
-      printCharLcd("CD", 0, 1);
-      curr_group = "AB";
-    }
-  }*/
   
-
   //green time
   while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
@@ -166,9 +164,21 @@ void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
     old_disp_time = zeit;
     lcd.clear();
     printIntLcd(zeit, 0, 0);
-    Serial.println(zeit);
+    printIntLcd(curr_group, 0, 1);
+    //Serial.println(zeit);
   }
+  
+}
 
+void changeGroup(){
+  if(curr_group == 0){
+      curr_group = 1;
+    }else{
+      curr_group = 0;
+  }
+  Serial.println(curr_group);
+
+  /*
   if(mode_ABCD){
     if(curr_group == "AB"){
       printCharLcd("AB", 0, 1);
@@ -178,6 +188,7 @@ void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
       curr_group = "AB";
     }
   }
+  */
 }
 
 // ----------------------------- Help Functions ----------------------------------
