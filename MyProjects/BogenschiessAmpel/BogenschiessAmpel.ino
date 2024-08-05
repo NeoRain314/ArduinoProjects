@@ -28,6 +28,7 @@ unsigned long start_time = 0;
 unsigned long preparing_time = 0;
 unsigned long old_disp_time = 0; //to remember the old display time to update it everytime it changes
 
+
 bool terminate = false;
 
 int taster_stat = 0;
@@ -68,7 +69,8 @@ void loop() {
   }
   if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
     taster_stat = 0;
-    setMode(10, true);
+    setMode(20, true); // ------------------------------------------------------------------------------------------------------------------------------------------- < set mode, later with buttons > ------------- //
+    preparing_time = secInMil(10); // see at begin, later everytime 10 sec, just now to make it faster to debug :D
     executeMode();
   }
 
@@ -78,27 +80,14 @@ void loop() {
 
 void setMode(int time, bool ABCD){ //time in minutes; ab mode true or false
   shooting_time = secInMil(time);
+  Serial.println(shooting_time);
   mode_ABCD = ABCD;
 }
 
 void executeMode(){
   //reset
   if(millis() < start_time) Serial.print("!!!! ACHTUNG RESTARTEN - TIME OVERFLOW !!!!"); //TIME OVERFLOW!!!!! (this happens after ca. 1193h, then nothing works bis you restart)
-  start_time = millis();
-  digitalWrite(GREEN_PIN, LOW);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(RED_PIN, LOW);
 
-  //prepare time (red)
-  playTone(440, 700);
-  playTone(440, 700);
-  while(millis() <= start_time + preparing_time){
-    digitalWrite(RED_PIN, HIGH);
-    writeTime(computeCountdown(preparing_time));
-  }
-
-
-  
 
   shootingCountdown(); //green and yellow time
   
@@ -106,8 +95,7 @@ void executeMode(){
     changeGroup();
     shootingCountdown(); //if ABCD agaiin
   }
-   
-
+  
 
   //red! Finished
   digitalWrite(YELLOW_PIN, LOW);
@@ -130,11 +118,30 @@ void executeMode(){
 
 
 void shootingCountdown(){
+  //reset
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, LOW);
   start_time = millis();
-  playTone(440, 700);
-
   
+
+  //prepare time (red)
+  int x = 0;
+  while(millis() <= start_time + preparing_time){
+    
+    digitalWrite(RED_PIN, HIGH);
+    writeTime(computeCountdown(preparing_time));
+    if(x < 2){
+      playTone(440, 700);
+      x++;
+    }
+  }
+
+
+  start_time = millis(); //reset start time again
+
   //green time
+  playTone(440, 700);
   while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
     digitalWrite(GREEN_PIN, HIGH);
@@ -164,7 +171,8 @@ void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
     old_disp_time = zeit;
     lcd.clear();
     printIntLcd(zeit, 0, 0);
-    printIntLcd(curr_group, 0, 1);
+    if(curr_group == 0 ) printCharLcd("AB", 0, 1);
+    if(curr_group == 1 ) printCharLcd("CD", 0, 1);
     //Serial.println(zeit);
   }
   
@@ -201,6 +209,7 @@ int minInMil(int min){
 }
 
 int computeCountdown(unsigned long time){ //computes the remaining time of the current countdown
+  //Serial.println(20000/1000 - (millis()- start_time) / 1000);
   return time/1000 - (millis()- start_time) / 1000;
 }
 
