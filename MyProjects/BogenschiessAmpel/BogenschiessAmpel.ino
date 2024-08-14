@@ -2,25 +2,31 @@
     >>> ToDo <<<
   - Display show 0 from countdown??
   - after abbruch (interrupt) noting works)
-  - instead of 0 and 1 AB and CD on display
+
+
+  next todo:
+  - fix displayed mode and time & show in menue
+  - check if all modi are correct
 
 
 
-
--------------------------------------------------------------*/
-
+--------------------------------------------------------------- */
 
 #include <LiquidCrystal_I2C.h>
 
 //max millis time:  .046471111111h
 
-#define RED_PIN 8
-#define YELLOW_PIN 9
-#define GREEN_PIN 10
+#define RED_PIN 11
+#define YELLOW_PIN 12
+#define GREEN_PIN 13
 
-#define START_BUTTON_PIN 6
+#define START_BUTTON_PIN 8
+#define MODE_1 4
+#define MODE_2 5
+#define MODE_3 6
+#define MODE_4 7
 
-#define BUZZER_PIN 7
+#define BUZZER_PIN 9
 #define INTERRUPT_PIN 2
 
 unsigned long shooting_time = 0; //modus später
@@ -51,6 +57,10 @@ void setup() {
 
   pinMode(START_BUTTON_PIN, INPUT_PULLUP);
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  pinMode(MODE_1, INPUT_PULLUP);
+  pinMode(MODE_2, INPUT_PULLUP);
+  pinMode(MODE_3, INPUT_PULLUP);
+  pinMode(MODE_4, INPUT_PULLUP);
 
   lcd.init();
   lcd.clear();
@@ -59,29 +69,38 @@ void setup() {
   printCharLcd("Ampel", 5, 0);
 
   //set variables
-  //shooting_time = secInMil(10);
-  preparing_time = secInMil(3);
+  setMode(4, false); //standart mode; 1 -> 4min, AB
+  preparing_time = secInMil(5);
+  setMode(20, false); //standard mode
 }
 
 void loop() {
+  if(digitalRead(MODE_1) == 0) setMode(4, false); //1 -> 4min, AB
+  if(digitalRead(MODE_2) == 0) setMode(4, true);  //1 -> 4min, ABCD
+  if(digitalRead(MODE_3) == 0) setMode(2, false); //1 -> 2min, AB
+  if(digitalRead(MODE_4) == 0) setMode(2, true);  //1 -> 2min, ABCD
+
+  /*Serial.print("time: ");
+  Serial.println(shooting_time);
+  Serial.print(", ABCD: ");
+  Serial.println(mode_ABCD);*/
+
   if(digitalRead(START_BUTTON_PIN) == 0 && taster_stat == 0){
     taster_stat = 1;
   }
   if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
     taster_stat = 0;
-    setMode(20, true); // ------------------------------------------------------------------------------------------------------------------------------------------- < set mode, later with buttons > ------------- //
-    preparing_time = secInMil(10); // see at begin, later everytime 10 sec, just now to make it faster to debug :D
     executeMode();
   }
-
 }
 
 // -------------------------------------------------------------------------------
 
-void setMode(int time, bool ABCD){ //time in minutes; ab mode true or false
-  shooting_time = secInMil(time);
+void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or false
+  shooting_time = minInMil(time);
   Serial.println(shooting_time);
   mode_ABCD = ABCD;
+  //Serial.println(shooting_time);
 }
 
 void executeMode(){
@@ -90,12 +109,11 @@ void executeMode(){
 
 
   shootingCountdown(); //green and yellow time
-  
   if(mode_ABCD){
     changeGroup();
     shootingCountdown(); //if ABCD agaiin
   }
-  
+
 
   //red! Finished
   digitalWrite(YELLOW_PIN, LOW);
@@ -171,9 +189,18 @@ void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
     old_disp_time = zeit;
     lcd.clear();
     printIntLcd(zeit, 0, 0);
+    
     if(curr_group == 0 ) printCharLcd("AB", 0, 1);
     if(curr_group == 1 ) printCharLcd("CD", 0, 1);
     //Serial.println(zeit);
+
+    if(mode_ABCD){
+      printCharLcd("ABCD", 12, 1);
+    }else{
+      printCharLcd("AB", 14, 1);
+    }
+    printIntLcd(milInMin(shooting_time), 12, 0);
+    printCharLcd("min", 13, 0);
   }
   
 }
@@ -200,12 +227,16 @@ void changeGroup(){
 }
 
 // ----------------------------- Help Functions ----------------------------------
-int secInMil(int sec){
+unsigned long secInMil(int sec){
   return sec * 1000;
 }
 
-int minInMil(int min){
+unsigned long minInMil(unsigned long min){
   return min * 60 * 1000;
+}
+
+unsigned long milInMin(unsigned long mil){
+  return mil / 1000 / 60;
 }
 
 int computeCountdown(unsigned long time){ //computes the remaining time of the current countdown
