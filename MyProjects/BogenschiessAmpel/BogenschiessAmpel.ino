@@ -70,7 +70,7 @@ void setup() {
 
   //set variables
   setMode(4, false); //standart mode; 1 -> 4min, AB
-  preparing_time = secInMil(5);
+  preparing_time = secInMil(10);
   setMode(20, false); //standard mode
 }
 
@@ -160,7 +160,7 @@ void shootingCountdown(){
 
   //green time
   playTone(440, 700);
-  while(millis() <= start_time + shooting_time - secInMil(3)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
+  while(millis() <= start_time + shooting_time - secInMil(30)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
     digitalWrite(GREEN_PIN, HIGH);
     writeTime(computeCountdown(shooting_time));
@@ -201,6 +201,9 @@ void writeTime(int zeit){       //wite time and (if abcd) group at lcd display
     }
     printIntLcd(milInMin(shooting_time), 12, 0);
     printCharLcd("min", 13, 0);
+
+    printCharLcd("|", 11, 0);
+    printCharLcd("|", 11, 1);
   }
   
 }
