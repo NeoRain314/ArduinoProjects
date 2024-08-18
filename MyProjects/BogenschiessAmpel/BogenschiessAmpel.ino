@@ -75,21 +75,44 @@ void setup() {
 }
 
 void loop() {
+  //buttons to set mode
   if(digitalRead(MODE_1) == 0) setMode(4, false); //1 -> 4min, AB
   if(digitalRead(MODE_2) == 0) setMode(4, true);  //1 -> 4min, ABCD
   if(digitalRead(MODE_3) == 0) setMode(2, false); //1 -> 2min, AB
   if(digitalRead(MODE_4) == 0) setMode(2, true);  //1 -> 2min, ABCD
+
+  Serial.println(terminate);
+
+
+
+  if(millis() % 500 == 0){  //write settings on display
+    lcd.clear();
+    printCharLcd("Ampel", 5, 0);
+
+    printIntLcd(milInMin(shooting_time), 4, 1);
+    printCharLcd("min", 5, 1);
+
+    printCharLcd("|", 6, 1);
+
+    if(mode_ABCD){
+      printCharLcd("ABCD", 7, 1);
+    }else{
+      printCharLcd("AB", 7, 1);
+    }
+  }
+
 
   /*Serial.print("time: ");
   Serial.println(shooting_time);
   Serial.print(", ABCD: ");
   Serial.println(mode_ABCD);*/
 
-  if(digitalRead(START_BUTTON_PIN) == 0 && taster_stat == 0){
+  if(digitalRead(START_BUTTON_PIN) == 0 && taster_stat == 0){   //start button
     taster_stat = 1;
   }
   if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
     taster_stat = 0;
+    terminate = false;
     executeMode();
   }
 }
@@ -98,7 +121,7 @@ void loop() {
 
 void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or false
   shooting_time = minInMil(time);
-  Serial.println(shooting_time);
+  //Serial.println(shooting_time);
   mode_ABCD = ABCD;
   //Serial.println(shooting_time);
 }
@@ -111,7 +134,7 @@ void executeMode(){
   shootingCountdown(); //green and yellow time
   if(mode_ABCD){
     changeGroup();
-    shootingCountdown(); //if ABCD agaiin
+    shootingCountdown(); //if ABCD again
   }
 
 
@@ -119,14 +142,15 @@ void executeMode(){
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, HIGH);
   lcd.clear();
-  printCharLcd("Time up!", 4, 0);
 
   if(terminate){  //Abbruch
+    printCharLcd("Abbruch!", 4, 0);
     for(int i=0; i<6; i++){
       playTone(800, 500);
     }
     terminate = false;
   }else{          //norm. Ende
+    printCharLcd("Time up!", 4, 0);
     playTone(440, 700);
     playTone(440, 700);
     playTone(440, 700);
@@ -145,7 +169,7 @@ void shootingCountdown(){
 
   //prepare time (red)
   int x = 0;
-  while(millis() <= start_time + preparing_time){
+  while(!terminate && (millis() <= start_time + preparing_time)){
     
     digitalWrite(RED_PIN, HIGH);
     writeTime(computeCountdown(preparing_time));
@@ -160,14 +184,14 @@ void shootingCountdown(){
 
   //green time
   playTone(440, 700);
-  while(millis() <= start_time + shooting_time - secInMil(30)){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
+  while(!terminate && (millis() <= start_time + shooting_time - secInMil(30))){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
     digitalWrite(GREEN_PIN, HIGH);
     writeTime(computeCountdown(shooting_time));
   }
 
   //yellow time
-  while(millis() <= start_time + shooting_time){
+  while(!terminate && (millis() <= start_time + shooting_time)){
     digitalWrite(GREEN_PIN, LOW);
     digitalWrite(YELLOW_PIN, HIGH);
     writeTime(computeCountdown(shooting_time));
@@ -177,8 +201,6 @@ void shootingCountdown(){
 
 void terminateAll(){
   terminate = true;
-  shooting_time = 0;
-  preparing_time = 0;
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, HIGH);
