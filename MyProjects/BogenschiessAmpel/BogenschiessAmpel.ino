@@ -7,6 +7,7 @@
   next todo:
   - fix displayed mode and time & show in menue
   - check if all modi are correct
+  - stop (curr to end)
 
 
 
@@ -27,7 +28,8 @@
 #define MODE_4 7
 
 #define BUZZER_PIN 9
-#define INTERRUPT_PIN 2
+#define INTERRUPT_ABBRUCH_PIN 2
+#define INTERRUPT_WEITER_PIN 3
 
 unsigned long shooting_time = 0; //modus später
 unsigned long start_time = 0;
@@ -36,6 +38,7 @@ unsigned long old_disp_time = 0; //to remember the old display time to update it
 
 
 bool terminate = false;
+bool jump_forward = false;
 
 int taster_stat = 0;
 
@@ -49,14 +52,16 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 void setup() {
   //initializing
   Serial.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), terminateAll, FALLING);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_ABBRUCH_PIN), terminateAll, FALLING);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_WEITER_PIN), jumpForward, FALLING);
 
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
 
+  pinMode(INTERRUPT_ABBRUCH_PIN, INPUT_PULLUP);
+  pinMode(INTERRUPT_WEITER_PIN, INPUT_PULLUP);
   pinMode(START_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   pinMode(MODE_1, INPUT_PULLUP);
   pinMode(MODE_2, INPUT_PULLUP);
   pinMode(MODE_3, INPUT_PULLUP);
@@ -123,6 +128,7 @@ void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or 
   shooting_time = minInMil(time);
   //Serial.println(shooting_time);
   mode_ABCD = ABCD;
+  curr_group = 0; //everytime you set a mode ab starts
   //Serial.println(shooting_time);
 }
 
@@ -169,7 +175,7 @@ void shootingCountdown(){
 
   //prepare time (red)
   int x = 0;
-  while(!terminate && (millis() <= start_time + preparing_time)){
+  while(!terminate && !jump_forward && (millis() <= start_time + preparing_time)){
     
     digitalWrite(RED_PIN, HIGH);
     writeTime(computeCountdown(preparing_time));
@@ -184,23 +190,32 @@ void shootingCountdown(){
 
   //green time
   playTone(440, 700);
-  while(!terminate && (millis() <= start_time + shooting_time - secInMil(30))){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
+  while(!terminate && !jump_forward && (millis() <= start_time + shooting_time - secInMil(30))){ //yellow time (should be 30 sec in the end) ------------------------------------------------------------------------------------------------- !!!!
     digitalWrite(RED_PIN, LOW);
     digitalWrite(GREEN_PIN, HIGH);
     writeTime(computeCountdown(shooting_time));
   }
 
   //yellow time
-  while(!terminate && (millis() <= start_time + shooting_time)){
+  while(!terminate && !jump_forward && (millis() <= start_time + shooting_time)){
     digitalWrite(GREEN_PIN, LOW);
     digitalWrite(YELLOW_PIN, HIGH);
     writeTime(computeCountdown(shooting_time));
   }
+  
+  jump_forward = false;
 }
 
 
 void terminateAll(){
   terminate = true;
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, HIGH);
+}
+
+void jumpForward(){
+  jump_forward = true;
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, HIGH);
