@@ -1,3 +1,5 @@
+
+
 /*-------------------------------------------------------------
     >>> ToDo <<<
   - Display show 0 from countdown??
@@ -12,6 +14,7 @@
 
 
 --------------------------------------------------------------- */
+#include <IRremote.hpp>
 
 #include <LiquidCrystal_I2C.h>
 
@@ -30,6 +33,8 @@
 #define BUZZER_PIN 9
 #define INTERRUPT_ABBRUCH_PIN 2
 #define INTERRUPT_WEITER_PIN 3
+
+#define RECV_PIN 44
 
 unsigned long shooting_time = 0; //modus später
 unsigned long start_time = 0;
@@ -67,6 +72,9 @@ void setup() {
   pinMode(MODE_3, INPUT_PULLUP);
   pinMode(MODE_4, INPUT_PULLUP);
 
+  IrReceiver.begin(RECV_PIN);
+
+
   lcd.init();
   lcd.clear();
   lcd.backlight();
@@ -80,13 +88,15 @@ void setup() {
 }
 
 void loop() {
+  testIR();
+
   //buttons to set mode
   if(digitalRead(MODE_1) == 0) setMode(4, false); //1 -> 4min, AB
   if(digitalRead(MODE_2) == 0) setMode(4, true);  //1 -> 4min, ABCD
   if(digitalRead(MODE_3) == 0) setMode(2, false); //1 -> 2min, AB
   if(digitalRead(MODE_4) == 0) setMode(2, true);  //1 -> 2min, ABCD
 
-  Serial.println(terminate);
+  //Serial.println(terminate);
 
 
 
@@ -123,6 +133,17 @@ void loop() {
 }
 
 // -------------------------------------------------------------------------------
+
+void testIR(){
+  delay(200);
+  if (IrReceiver.decode()){
+    if (IrReceiver.decodedIRData.address == 0){
+      IrReceiver.resume();            // receive the next value
+      Serial.println(IrReceiver.decodedIRData.command);
+    }
+  }
+
+}
 
 void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or false
   shooting_time = minInMil(time);
@@ -251,7 +272,7 @@ void changeGroup(){
     }else{
       curr_group = 0;
   }
-  Serial.println(curr_group);
+  //Serial.println(curr_group);
 
   /*
   if(mode_ABCD){
@@ -308,6 +329,3 @@ void playTone(int f, int dur){
   noTone(BUZZER_PIN);
   delay(dur); //pause == tone dur
 }
-
-
-
