@@ -31,10 +31,10 @@
 #define MODE_4 7
 
 #define BUZZER_PIN 9
-#define INTERRUPT_ABBRUCH_PIN 2
-#define INTERRUPT_WEITER_PIN 3
+#define INTERRUPT_ABBRUCH_PIN 18
+#define INTERRUPT_WEITER_PIN 19
 
-#define RECV_PIN 44
+#define RECV_PIN 2
 
 unsigned long shooting_time = 0; //modus später
 unsigned long start_time = 0;
@@ -59,6 +59,7 @@ void setup() {
   Serial.begin(9600);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_ABBRUCH_PIN), terminateAll, FALLING);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_WEITER_PIN), jumpForward, FALLING);
+  attachInterrupt(digitalPinToInterrupt(RECV_PIN), irInterrupt, FALLING);
 
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
@@ -88,7 +89,7 @@ void setup() {
 }
 
 void loop() {
-  testIR();
+  //testIR();
 
   //buttons to set mode
   if(digitalRead(MODE_1) == 0) setMode(4, false); //1 -> 4min, AB
@@ -227,6 +228,9 @@ void shootingCountdown(){
   jump_forward = false;
 }
 
+void irInterrupt(){
+  
+}
 
 void terminateAll(){
   terminate = true;
