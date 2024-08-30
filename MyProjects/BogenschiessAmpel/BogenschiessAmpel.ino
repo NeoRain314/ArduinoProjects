@@ -80,6 +80,15 @@ void setup() {
   lcd.clear();
   lcd.backlight();
   
+  //-----------------
+
+  digitalWrite(RED_PIN,LOW);
+  digitalWrite(YELLOW_PIN,LOW);
+  digitalWrite(GREEN_PIN,LOW);
+
+  systemTest(); //test all outputs
+
+  //-----------------
   printCharLcd("Ampel", 5, 0);
 
   //set variables
@@ -289,6 +298,30 @@ void changeGroup(){
     }
   }
   */
+}
+
+void systemTest(){
+  printCharLcd("----------------", 0, 1);
+  printCharLcd("Please wait...", 1, 0);
+  
+  delay(5000);
+
+  digitalWrite(RED_PIN,HIGH);
+  delay(500);
+  digitalWrite(RED_PIN,LOW);
+  delay(500);
+  digitalWrite(YELLOW_PIN,HIGH);
+  delay(500);
+  digitalWrite(YELLOW_PIN,LOW);
+  delay(500);
+  digitalWrite(GREEN_PIN,HIGH);
+  delay(500);
+  digitalWrite(GREEN_PIN,LOW);
+  delay(500);
+  tone(BUZZER_PIN, 440);
+  delay(500);
+  noTone(BUZZER_PIN);
+  delay(500);
 }
 
 // ----------------------------- Help Functions ----------------------------------
