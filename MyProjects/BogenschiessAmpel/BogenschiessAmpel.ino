@@ -25,16 +25,15 @@
 #define GREEN_PIN 13
 
 #define START_BUTTON_PIN 8
-#define MODE_1 4
-#define MODE_2 5
-#define MODE_3 6
-#define MODE_4 7
+#define MODE_BUTTON_PIN 7
 
 #define BUZZER_PIN 9
 #define INTERRUPT_ABBRUCH_PIN 18
 #define INTERRUPT_WEITER_PIN 19
 
 #define RECV_PIN 2
+
+int mode_num = 0; //0 --> standard mode
 
 unsigned long shooting_time = 0; //modus später
 unsigned long start_time = 0;
@@ -46,6 +45,7 @@ bool terminate = false;
 bool jump_forward = false;
 
 int taster_stat = 0;
+int mode_taster_stat = 1;
 
 //mode variables
 bool mode_ABCD = false; //true/false
@@ -68,10 +68,7 @@ void setup() {
   pinMode(INTERRUPT_ABBRUCH_PIN, INPUT_PULLUP);
   pinMode(INTERRUPT_WEITER_PIN, INPUT_PULLUP);
   pinMode(START_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(MODE_1, INPUT_PULLUP);
-  pinMode(MODE_2, INPUT_PULLUP);
-  pinMode(MODE_3, INPUT_PULLUP);
-  pinMode(MODE_4, INPUT_PULLUP);
+  pinMode(MODE_BUTTON_PIN, INPUT_PULLUP);
 
   IrReceiver.begin(RECV_PIN);
 
@@ -98,13 +95,23 @@ void setup() {
 }
 
 void loop() {
-  //testIR();
 
-  //buttons to set mode
+  /*//buttons to set mode
   if(digitalRead(MODE_1) == 0) setMode(4, false); //1 -> 4min, AB
   if(digitalRead(MODE_2) == 0) setMode(4, true);  //1 -> 4min, ABCD
   if(digitalRead(MODE_3) == 0) setMode(2, false); //1 -> 2min, AB
-  if(digitalRead(MODE_4) == 0) setMode(2, true);  //1 -> 2min, ABCD
+  if(digitalRead(MODE_4) == 0) setMode(2, true);  //1 -> 2min, ABCD*/
+
+  if(digitalRead(MODE_BUTTON_PIN) == 0 && (mode_taster_stat == 1)){
+    mode_taster_stat = 0;
+  }else if(digitalRead(MODE_BUTTON_PIN) == 1 && (mode_taster_stat == 0)){ //call function when button is released
+    mode_taster_stat = 1;
+    selectMode();
+  }
+
+
+  
+
 
   //Serial.println(terminate);
 
@@ -132,10 +139,10 @@ void loop() {
   Serial.print(", ABCD: ");
   Serial.println(mode_ABCD);*/
 
-  if(digitalRead(START_BUTTON_PIN) == 0 && taster_stat == 0){   //start button
+  if(digitalRead(START_BUTTON_PIN) == 0 && taster_stat == 0){  //start button
     taster_stat = 1;
   }
-  if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){
+  if(digitalRead(START_BUTTON_PIN) == 1 && taster_stat == 1){ //call function when button is released
     taster_stat = 0;
     terminate = false;
     executeMode();
@@ -144,15 +151,14 @@ void loop() {
 
 // -------------------------------------------------------------------------------
 
-void testIR(){
-  delay(200);
-  if (IrReceiver.decode()){
-    if (IrReceiver.decodedIRData.address == 0){
-      IrReceiver.resume();            // receive the next value
-      Serial.println(IrReceiver.decodedIRData.command);
-    }
-  }
+void selectMode(){
+  mode_num++;
+  if(mode_num>3) mode_num = 0;
 
+  if(mode_num == 0) setMode(4, false); //-> 4min, AB
+  if(mode_num == 1) setMode(4, true);  //-> 4min, ABCD
+  if(mode_num == 2) setMode(2, false); //-> 2min, AB
+  if(mode_num == 3) setMode(2, true);  //-> 2min, ABCD
 }
 
 void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or false
