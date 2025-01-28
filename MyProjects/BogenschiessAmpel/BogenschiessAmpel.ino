@@ -42,7 +42,7 @@ unsigned long old_disp_time = 0; //to remember the old display time to update it
 
 
 bool terminate = false;
-bool jump_forward = false;
+bool jump_forward = false; 
 
 int taster_stat = 0;
 int mode_taster_stat = 1;
@@ -61,7 +61,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_WEITER_PIN), jumpForward, FALLING);
   attachInterrupt(digitalPinToInterrupt(RECV_PIN), irInterrupt, FALLING);
 
-  pinMode(RED_PIN, OUTPUT);
+    
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
 
@@ -165,7 +165,7 @@ void setMode(unsigned long time, bool ABCD){ //time in minutes; ab mode true or 
   shooting_time = minInMil(time);
   //Serial.println(shooting_time);
   mode_ABCD = ABCD;
-  curr_group = 0; //everytime you set a mode ab starts
+  curr_group = 1; //everytime you set a mode ab starts
   //Serial.println(shooting_time);
 }
 
